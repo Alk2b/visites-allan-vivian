@@ -51,5 +51,8 @@ def metrics():
 
 @app.post("/reset")
 def reset():
-    r.set("visites", 0)
+    try:
+        r.set("visites", 0)
+    except redis.exceptions.ConnectionError:
+        return Response(status_code=503, content="redis down")
     return {"visites": 0}
