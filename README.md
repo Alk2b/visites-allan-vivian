@@ -1,3 +1,2 @@
-# visites : compteur de visites
 
-Application fil rouge du module Intro DevOps. À compléter au TP01.
+# Visites - API de comptage de visites (Allan et Vivian)
