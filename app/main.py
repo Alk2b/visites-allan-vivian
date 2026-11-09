@@ -48,3 +48,12 @@ def health():
 @app.get("/metrics")
 def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.post("/reset")
+def reset():
+    try:
+        r.set("visites", 0)
+    except redis.exceptions.ConnectionError:
+        return Response(status_code=503, content="redis down")
+    return {"visites": 0}
