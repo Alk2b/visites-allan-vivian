@@ -9,3 +9,38 @@
 **Q3. Pourquoi signer si la forge vérifie qui pousse ?** La forge sait qui pousse, pas qui a écrit le commit. La signature reste attachée au commit : elle prouve son auteur même si un autre le pousse, ou si le dépôt migre vers une autre forge.
 
 **Ce qui a pris le plus de temps :** la mise en place de la VM, et l'absence d'organisation pour le dépôt modèle.
+
+## TP02
+
+### Secret historique et rotation
+
+- Secret trouvé par `gitleaks git --verbose --redact .` : règle `github-pat`, fichier `app/old_settings.py` ligne 2,
+  commit `707161a` (« chore: paramètres temporaires »), auteur Allan Khebab, 12/11/2026 07:35 UTC.
+- Rotation : le jeton a été poussé sur une forge publique, il est donc considéré comme compromis.
+  Un vrai jeton aurait été révoqué dans GitHub (Settings → Developer settings → Personal access tokens),
+  recréé avec le moindre privilège et stocké dans un secret de dépôt, jamais dans le code.
+- Historique non réécrit : le dépôt est déjà partagé et le secret déjà exposé ; réécrire n'annule pas la fuite.
+  Fichier supprimé et empreinte ajoutée à `.gitleaksignore`.
+
+### Questions des étapes
+
+- Dismiss stale approvals : une approbation est annulée si de nouveaux commits arrivent ; on évite
+  qu'une PR approuvée soit ensuite modifiée puis fusionnée sans relecture du nouveau code.
+- CODEOWNERS : si le seul propriétaire est absent, la PR est bloquée. Il faut au moins deux propriétaires
+  par zone (ou une équipe) et une procédure de contournement encadrée par un administrateur.
+- Dependabot : sa PR est ouverte par un robot, elle doit être approuvée par un membre du binôme comme
+  n'importe quelle PR ; une mise à jour de dépendance peut casser l'application ou introduire du code malveillant.
+- gitleaks (étape 4) : la clé d'exemple AWS de la documentation (« …EXAMPLEKEY ») est ignorée par gitleaks ;
+  une valeur réaliste a été refusée (règle `generic-api-key`, entropie 5,3). Renommée en `MA_VARIABLE`,
+  la même valeur passe : la détection repose sur le nom de la variable (mot-clé) et l'entropie de la valeur.
+
+### Questions d'observation
+
+- Q1. Auraient bloqué le secret : la revue obligatoire (humaine), gitleaks en pre-commit, gitleaks en CI
+  comme contrôle requis et la push protection GitHub (automatiques). Le plus fiable : le contrôle côté serveur,
+  qui ne dépend pas du poste du développeur.
+- Q2. Non : pre-commit est local et peut ne pas être installé ou être contourné (`--no-verify`).
+  Il faut lancer gitleaks dans le pipeline et rendre ce check obligatoire dans le ruleset.
+- Q3. Quelques secondes à quelques minutes : des robots scrutent les dépôts publics en continu.
+  GitHub Secret Scanning prévient les fournisseurs partenaires, qui révoquent certains jetons automatiquement
+  (jetons GitHub, AWS, Slack, Stripe…).
