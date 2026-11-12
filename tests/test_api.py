@@ -29,5 +29,5 @@ def test_verif_version_client(client):
     # Vérification du statut et de l'en-tête
     assert response.status_code == 200
     assert "X-Visites-Version" in response.headers
-    assert response.headers["X-Visites-Version"] == "0.1.0"
+    assert response.headers["X-Visites-Version"] == "0.1.1"
     assert response.json()["visites"] == 1
