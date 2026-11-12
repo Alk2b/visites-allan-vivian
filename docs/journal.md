@@ -21,6 +21,7 @@
   recréé avec le moindre privilège et stocké dans un secret de dépôt, jamais dans le code.
 - Historique non réécrit : le dépôt est déjà partagé et le secret déjà exposé ; réécrire n'annule pas la fuite.
   Fichier supprimé et empreinte ajoutée à `.gitleaksignore`.
+- Notre dépôt modèle a été créé à partir des fichiers fournis, sans l'historique du formateur : le faux jeton n'y était pas. Nous l'avons planté nous-mêmes (commit 707161a) avant de poser les règles de protection.
 
 ### Questions des étapes
 
