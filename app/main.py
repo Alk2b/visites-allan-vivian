@@ -1,4 +1,5 @@
 import time
+from importlib.metadata import version
 
 import redis
 from fastapi import FastAPI, Request, Response
@@ -32,7 +33,7 @@ async def metrics_middleware(request: Request, call_next):
 @app.get("/")
 def root(response: Response):
     n = r.incr("visites")
-    response.headers["X-Visites-Version"] = "0.1.0"
+    response.headers["X-Visites-Version"] = version("visites")
     return {"visites": n}
 
 
