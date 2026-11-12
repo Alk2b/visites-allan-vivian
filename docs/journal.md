@@ -59,3 +59,26 @@
 - Q1. Environ 1 min par job, les deux versions tournant en parallèle. Le plus long est pre-commit (installation des hooks), puis `pip install` et le démarrage de l'exécuteur. Le cache pip n'a fait gagner que quelques secondes : mettre en cache les hooks de pre-commit serait plus efficace.
 - Q2. Le ruleset : PR obligatoire, checks `test (py3.12)` et `test (py3.13)` requis, aucune exception (bypass list vide). Sans lui, le pipeline n'est qu'un avis.
 - Q3. Pour Gitea Actions, presque rien : même syntaxe, le fichier peut aller dans `.gitea/workflows`. Pour GitLab CI, tout le fichier est à réécrire en `.gitlab-ci.yml` (stages, image, script, cache, artifacts), mais avec les mêmes concepts.
+
+## TP04
+
+### Mesures avant / après
+
+| Mesure | Image naïve | Image optimisée |
+| --- | --- | --- |
+| Taille décompressée | 1,3 Go | 184 Mo |
+| Taille compressée | 489 Mo | 61 Mo |
+| Couches (`docker history`) | 17 | 19 |
+| Utilisateur | root | `app` (UID 10001) |
+| Contenu de `/app` | tout le projet, dont `.git` et `tests` | `app/` uniquement |
+| Base | `python:3.13`, non épinglée | `python:3.13-slim`, épinglée par digest |
+| Construction initiale | 33 s | 55 s |
+| Reconstruction après un changement de code | 34 s | 7 s |
+
+Digest de l'image 0.1.1 (tags `0.1.1` et `sha-b4aa2dc`) :
+`sha256:8bc944092691fbbf6f0904756d9511d7e85cc674d23a2bdb0c1f1c531b25370d`
+
+### Questions d'observation
+- Q1. L'image est passée de 1,3 Go à 184 Mo (−86 %). C'est la base `slim` qui a eu le plus d'effet : l'image complète apporte à elle seule environ 1 Go d'outils de compilation. Le multi-étapes et le `.dockerignore` retirent ensuite le reste (`.git`, `.venv`, tests, caches).
+- Q2. Le tag `sha-xxxxxxx` relie l'image au commit qui l'a produite, et le tag `0.1.1` à la version publiée : ils racontent l'histoire de l'image. Mais un tag peut être déplacé vers une autre image, alors que le digest est l'empreinte du contenu : c'est la seule référence immuable. Déployer par digest garantit de lancer exactement l'image testée.
+- Q3. Une image ne doit jamais contenir de secrets, ni `.git`, ni d'outils de construction, ni de tests, ni de shell ou de paquets inutiles : tout ce qui s'y trouve peut être lu ou exploité. Les Docker Hardened Images vont plus loin en supprimant même le shell et le gestionnaire de paquets, ce qui réduit encore la surface d'attaque.
