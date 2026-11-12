@@ -45,3 +45,17 @@
 - Q3. Quelques secondes à quelques minutes : des robots scrutent les dépôts publics en continu.
   GitHub Secret Scanning prévient les fournisseurs partenaires, qui révoquent certains jetons automatiquement
   (jetons GitHub, AWS, Slack, Stripe…).
+
+## TP03
+
+### Pipeline
+- Durées du job py3.13 : 49 s avant la matrice, puis 56 s (cache absent) et 46 s (cache restauré). Job py3.12 : 1 min 0 s, puis 1 min 2 s.
+- Le cache pip fait peu gagner, car `pip install` ne prend que 6 à 10 s. L'étape la plus longue est pre-commit (30 à 40 s), qui réinstalle ses hooks à chaque exécution.
+- Checks requis dans le ruleset : `test (py3.12)` et `test (py3.13)`.
+- act 0.2.89, avec l'image `catthehacker/ubuntu:act-24.04` épinglée : le job passe jusqu'à pytest. `upload-artifact` échoue faute de `ACTIONS_RUNTIME_TOKEN`, car le service d'artefacts de GitHub n'existe pas en local.
+- Le cache pip n'est jamais trouvé avec act (« pip cache is not found ») : sans échec, mais sans gain.
+
+### Questions d'observation
+- Q1. Environ 1 min par job, les deux versions tournant en parallèle. Le plus long est pre-commit (installation des hooks), puis `pip install` et le démarrage de l'exécuteur. Le cache pip n'a fait gagner que quelques secondes : mettre en cache les hooks de pre-commit serait plus efficace.
+- Q2. Le ruleset : PR obligatoire, checks `test (py3.12)` et `test (py3.13)` requis, aucune exception (bypass list vide). Sans lui, le pipeline n'est qu'un avis.
+- Q3. Pour Gitea Actions, presque rien : même syntaxe, le fichier peut aller dans `.gitea/workflows`. Pour GitLab CI, tout le fichier est à réécrire en `.gitlab-ci.yml` (stages, image, script, cache, artifacts), mais avec les mêmes concepts.
