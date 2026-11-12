@@ -53,6 +53,7 @@
 - Le cache pip fait peu gagner, car `pip install` ne prend que 6 à 10 s. L'étape la plus longue est pre-commit (30 à 40 s), qui réinstalle ses hooks à chaque exécution.
 - Checks requis dans le ruleset : `test (py3.12)` et `test (py3.13)`.
 - act 0.2.89, avec l'image `catthehacker/ubuntu:act-24.04` épinglée : le job passe jusqu'à pytest. `upload-artifact` échoue faute de `ACTIONS_RUNTIME_TOKEN`, car le service d'artefacts de GitHub n'existe pas en local.
+- Le cache pip n'est jamais trouvé avec act (« pip cache is not found ») : sans échec, mais sans gain.
 
 ### Questions d'observation
 - Q1. Environ 1 min par job, les deux versions tournant en parallèle. Le plus long est pre-commit (installation des hooks), puis `pip install` et le démarrage de l'exécuteur. Le cache pip n'a fait gagner que quelques secondes : mettre en cache les hooks de pre-commit serait plus efficace.
